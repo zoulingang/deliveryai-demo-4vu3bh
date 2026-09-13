@@ -15,6 +15,18 @@
         } catch (e) {
           // localStorage 不可用时保持默认中文
         }
+
+        // 同步设置初始主题 dark class，防止 FOUC（闪烁）
+        try {
+          var storedTheme = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var shouldDark = storedTheme === 'dark' || (storedTheme !== 'light' && prefersDark);
+          if (shouldDark) {
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {
+          // 异常时默认浅色，不阻塞渲染
+        }
       })();
     </script>
   </head>

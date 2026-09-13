@@ -20,6 +20,18 @@ export default defineConfig({
       executablePath: CHROMIUM_PATH,
       args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
     },
+    // 显式设置浅色主题为测试基准，避免主题改动影响现有断言
+    storageState: {
+      cookies: [],
+      origins: [
+        {
+          origin: 'http://localhost:5173',
+          localStorage: [
+            { name: 'theme', value: 'light' }
+          ]
+        }
+      ]
+    }
   },
   projects: [
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },

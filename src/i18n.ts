@@ -43,6 +43,10 @@ const resources = {
         preview_message: '预览模式 · 已绑定 A08 桌',
         welcome_message: '欢迎进入概念演示',
         unknown_area: '',
+        aria_theme: '切换主题',
+        theme_light: '浅色',
+        theme_dark: '深色',
+        theme_auto: '自动',
       },
       bind: {
         title_l1: '热气升腾，',
@@ -281,6 +285,10 @@ const resources = {
         preview_message: 'Preview mode · Table A08 bound',
         welcome_message: 'Welcome to the concept demo',
         unknown_area: '',
+        aria_theme: 'Toggle theme',
+        theme_light: 'Light',
+        theme_dark: 'Dark',
+        theme_auto: 'Auto',
       },
       bind: {
         title_l1: 'Steam rising,',
