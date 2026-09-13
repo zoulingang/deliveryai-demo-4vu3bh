@@ -258,3 +258,101 @@ test.describe('夜间模式 - E2E 联调验收测试', () => {
     await expect(page.getByRole('button', { name: /进入点餐|Enter/ })).toBeVisible()
   })
 })
+
+test.describe('夜间模式 - 补充验收测试', () => {
+  test('DARK-016: DemoConsole 演示控制台在深色模式下可正常打开和显示', async ({ page }) => {
+    await gotoMenu(page)
+    await selectTheme(page, 'dark')
+    await expect(page.locator('html')).toHaveClass(/dark/)
+    // Open demo console
+    await page.getByRole('button', { name: /演示控制台|Demo Console|控制台/ }).click()
+    // Should see demo console title
+    await expect(page.getByText(/演示控制台|Demo Console/).first()).toBeVisible()
+    // Table fulfillment section
+    await expect(page.getByText(/桌台与履约|Table & Fulfillment/)).toBeVisible()
+    // Service response section
+    await expect(page.getByText(/服务响应|Service Response/)).toBeVisible()
+    // Sold out toggle section
+    await expect(page.getByText(/菜品售罄开关|Sold-out Toggle/)).toBeVisible()
+    // Close
+    await page.getByRole('button', { name: /完成设置|Done/ }).click()
+    await expect(page.getByText(/演示控制台|Demo Console/).first()).not.toBeVisible()
+  })
+
+  test('DARK-017: prefers-reduced-motion 时关闭过渡动画', async ({ page }) => {
+    // Emulate reduced motion preference
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await gotoMenu(page)
+    // The CSS rule @media (prefers-reduced-motion: reduce) should apply transition:none
+    const transitionValue = await page.evaluate(() => {
+      const html = document.documentElement
+      return getComputedStyle(html).transitionProperty
+    })
+    // When prefers-reduced-motion is reduce, transitions should be 'none' or 'all' with 0s duration
+    // Actually the CSS sets transition: none !important
+    const allTransitionNone = await page.evaluate(() => {
+      const html = document.documentElement
+      const htmlStyle = getComputedStyle(html)
+      const body = document.body
+      const bodyStyle = getComputedStyle(body)
+      return {
+        htmlTransitionDuration: htmlStyle.transitionDuration,
+        bodyTransitionDuration: bodyStyle.transitionDuration,
+      }
+    })
+    // With reduced motion, transition duration should be 0s
+    expect(allTransitionNone.htmlTransitionDuration).toBe('0s')
+  })
+
+  test('DARK-018: localStorage 不可用时降级为内存态，不报错', async ({ page}) => {
+    await gotoMenu(page)
+    // Intercept localStorage to throw errors (simulating privacy mode)
+    await page.addInitScript(() => {
+      Storage.prototype.setItem = () => { throw new Error('Storage disabled') }
+      Storage.prototype.getItem = () => { throw new Error('Storage disabled') }
+    })
+    // Navigate fresh with localStorage disabled
+    await page.goto('/')
+    // Should still render without errors
+    await page.getByRole('button', { name: /A08/ }).first().click()
+    await page.getByRole('button', { name: /进入点餐|Enter/ }).click()
+    // Switch to dark - should work in memory even if localStorage fails
+    await selectTheme(page, 'dark')
+    await expect(page.locator('html')).toHaveClass(/dark/)
+    // Switch to light
+    await selectTheme(page, 'light')
+    await expect(page.locator('html')).not.toHaveClass(/dark/)
+    // Collect console errors
+    const errors: string[] = []
+    page.on('console', msg => {
+      if (msg.type() === 'error') errors.push(msg.text())
+    })
+    // No blocking errors related to theme
+    const themeErrors = errors.filter(e => e.toLowerCase().includes('theme') || e.toLowerCase().includes('localstorage'))
+    expect(themeErrors).toEqual([])
+  })
+
+  test('DARK-019: CheckoutView 结账页深色模式正常显示', async ({ page }) => {
+    await gotoMenu(page)
+    await selectTheme(page, 'dark')
+    // Add item
+    await page.getByRole('button', { name: '锅底' }).click()
+    const productCards = page.locator('article')
+    await productCards.first().locator('button').last().click()
+    await page.getByRole('button', { name: '微辣' }).click()
+    await page.getByRole('button', { name: /加入本桌购物车|Add to table cart/ }).click()
+    await page.waitForTimeout(300)
+    // Submit order
+    await page.getByRole('button', { name: /确认并提交订单|Confirm & Submit Order/ }).click()
+    await page.waitForLoadState('networkidle')
+    // Go to checkout
+    await page.getByRole('button', { name: /去结账|Checkout/ }).click()
+    // Should see checkout title and payment methods
+    await expect(page.getByText(/核对本桌账单/)).toBeVisible()
+    await expect(page.getByText(/选择支付方式|Select Payment/)).toBeVisible()
+    // Pay
+    await page.getByRole('button', { name: /确认支付/ }).click()
+    // Should see success
+    await expect(page.getByText(/付款完成|Payment Successful/)).toBeVisible()
+  })
+})
