@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { tableAreas } from '@/data/menu'
 import type { ThemeMode } from '@/hooks/useTheme'
+import type { Currency } from '@/lib/utils'
 import type { ViewName } from '@/types'
 
 interface TopBarProps {
@@ -15,15 +16,17 @@ interface TopBarProps {
   elderly: boolean
   theme: ThemeMode
   isDark: boolean
+  currency: Currency
   onToggleLanguage: () => void
   onToggleElderly: () => void
   onSetTheme: (mode: ThemeMode) => void
+  onToggleCurrency: () => void
   onView: (view: ViewName) => void
   onService: () => void
   onConsole: () => void
 }
 
-export function TopBar({ table, view, serviceCount, language, elderly, theme, isDark, onToggleLanguage, onToggleElderly, onSetTheme, onView, onService, onConsole }: TopBarProps) {
+export function TopBar({ table, view, serviceCount, language, elderly, theme, isDark, currency, onToggleLanguage, onToggleElderly, onSetTheme, onToggleCurrency, onView, onService, onConsole }: TopBarProps) {
   const { t } = useTranslation()
   const areaKey = tableAreas[table]
   const tableLabel = areaKey ? `${table} · ${t(areaKey)}` : table
@@ -109,6 +112,17 @@ export function TopBar({ table, view, serviceCount, language, elderly, theme, is
               </div>
             )}
           </div>
+
+          {/* 币种切换按钮 */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onToggleCurrency}
+            aria-label={t('common.aria_currency')}
+            aria-pressed={currency === 'USD'}
+          >
+            {currency === 'CNY' ? '¥' : '$'}
+          </Button>
 
           <Button variant="outline" size="icon" onClick={onToggleElderly} aria-label={elderly ? '切换至常规模式' : '切换至老人模式'} className={elderly ? 'text-chili-500 dark:text-chili-400' : ''}>
             <Accessibility size={18} />
