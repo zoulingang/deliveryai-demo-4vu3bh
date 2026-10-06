@@ -1,22 +1,29 @@
-# 沸点火锅点单演示
+**English** | [简体中文](./README.zh-CN.md)
 
-一个面向火锅门店场景的移动端点单与履约流程演示项目，用于展示从绑定餐桌、多人点餐到订单履约和结账支付的完整体验。
+# Feidian Hotpot Ordering Demo
 
-> 本项目为概念演示，不代表正式产品。
+A mobile ordering and fulfillment demo built around a hotpot restaurant. It walks through the full guest experience: binding a table, ordering together with friends, tracking the order as it is cooked and served, and checking out.
 
-## 功能介绍
+> This is a concept demo, not a production product.
 
-- 绑定餐桌并进入点餐流程
-- 按分类浏览、搜索和选择菜品
-- 配置菜品规格、口味及下单人
-- 多人协同点餐与购物车管理
-- 查看订单制作及上菜进度
-- 呼叫加汤、饮料、餐具和结账服务
-- 模拟菜品售罄、服务响应及履约状态
-- 模拟结账和支付成功流程
-- 支持中英文切换和老人模式
+## Features
 
-## 技术栈
+- Bind a table and enter the ordering flow
+- Browse dishes by category, search, and pick items
+- Configure specs, spice level, and who ordered each dish (the "super spicy" broth asks for confirmation first)
+- Shared multi-person ordering and cart management
+- Track cooking and serving progress for each order
+- Call for extra broth, drinks, tableware, or the bill
+- Demo console to simulate sold-out dishes, service responses, and fulfillment stages
+- Simulated checkout and payment success
+- Chinese / English interface
+- Elderly mode with larger text
+- Light, dark, and follow-system themes
+- Six display currencies (CNY, USD, EUR, JPY, HKD, TWD) converted from CNY base prices with fixed rates
+
+Theme, currency, and elderly mode choices are saved in `localStorage`.
+
+## Tech stack
 
 - React 18
 - TypeScript
@@ -25,69 +32,94 @@
 - Radix UI
 - i18next
 - Playwright
+- Express (demo server)
 
-## 环境要求
+## Requirements
 
-- Node.js 18 或更高版本
-- npm 9 或更高版本
+- Node.js 18 or later (CI uses Node.js 20)
+- npm 9 or later
 
-## 本地开发
+## Local development
 
-安装依赖：
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-启动开发服务：
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-服务默认运行在 `http://localhost:5173`。如果该端口已被占用，Vite 会自动选择其他可用端口。
+The app runs at `http://localhost:5173` by default. If that port is taken, Vite picks another free port; check the startup log for the actual address.
 
-## 常用命令
+## Common commands
 
 ```bash
-# 启动开发服务
+# Start the dev server
 npm run dev
 
-# 执行代码检查
+# Lint
 npm run lint
 
-# 构建生产版本
+# Type-check and build for production
 npm run build
+
+# Run the Playwright end-to-end tests (starts the dev server automatically)
+npx playwright test
 ```
 
-生产构建产物会生成在 `dist/` 目录。
+The production build is written to `dist/`.
 
-## 项目结构
+The Playwright config launches Chromium from `/opt/chromium.org/chromium/chrome` by default. Set `PLAYWRIGHT_CHROMIUM_PATH` to point it at a different browser binary.
 
-```text
-.
-├── e2e/                    # Playwright 端到端测试
-├── server/                 # 演示服务端
-├── src/
-│   ├── assets/             # 图片资源
-│   ├── components/         # 页面及通用组件
-│   ├── data/               # 菜单等演示数据
-│   ├── hooks/              # React Hooks
-│   ├── state/              # 订单状态管理
-│   ├── App.tsx             # 应用入口组件
-│   ├── i18n.ts             # 中英文文案
-│   └── index.css           # 全局样式
-├── index.html
-├── tailwind.config.js
-└── vite.config.ts
+## Demo server
+
+`server/` contains a minimal Express server with a single `GET /ping` health-check endpoint on port `3001`.
+
+```bash
+cd server
+npm install
+npm run dev
 ```
 
-## 预览模式
+## Preview mode
 
-访问以下地址可以直接进入已绑定餐桌并带有购物车数据的菜单预览：
+Open this URL to jump straight to the menu with a table already bound and an item in the cart:
 
 ```text
 http://localhost:5173/?preview=menu
 ```
 
-实际端口以 Vite 启动日志为准。
+Use the port shown in the Vite startup log.
+
+## Deployment
+
+Pushing to `main` triggers `.github/workflows/deploy-pages.yml`, which builds the app and deploys `dist/` to GitHub Pages. Vite is configured with `base: './'`, so the build works from any subpath.
+
+## Project structure
+
+```text
+.
+├── .github/workflows/      # GitHub Pages deployment
+├── docs/specs/             # Requirement clarification docs
+├── e2e/                    # Playwright end-to-end tests
+├── openspec/               # OpenSpec change proposals and specs
+├── server/                 # Demo server (Express)
+├── src/
+│   ├── assets/             # Images
+│   ├── components/         # Views and shared UI components
+│   ├── data/               # Demo menu data
+│   ├── hooks/              # React hooks (theme, currency, elderly mode)
+│   ├── lib/                # Utilities, currency conversion and formatting
+│   ├── state/              # Order state management
+│   ├── App.tsx             # Root component
+│   ├── i18n.ts             # Chinese and English strings
+│   └── index.css           # Global styles
+├── index.html
+├── playwright.config.ts
+├── tailwind.config.js
+└── vite.config.ts
+```
