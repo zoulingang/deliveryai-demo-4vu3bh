@@ -1,93 +1,98 @@
-# 沸点火锅点单演示
+**English** | [简体中文](./README.zh-CN.md) | [日本語](./README.ja.md)
 
-一个面向火锅门店场景的移动端点单与履约流程演示项目，用于展示从绑定餐桌、多人点餐到订单履约和结账支付的完整体验。
+# Feidian Hotpot Ordering Demo
 
-> 本项目为概念演示，不代表正式产品。
+A mobile ordering demo for a hotpot restaurant: bind a table, order as a group, track dishes, and check out.
 
-## 功能介绍
+> Concept demo, not a production product.
 
-- 绑定餐桌并进入点餐流程
-- 按分类浏览、搜索和选择菜品
-- 配置菜品规格、口味及下单人
-- 多人协同点餐与购物车管理
-- 查看订单制作及上菜进度
-- 呼叫加汤、饮料、餐具和结账服务
-- 模拟菜品售罄、服务响应及履约状态
-- 模拟结账和支付成功流程
-- 支持中英文切换和老人模式
+## Features
 
-## 技术栈
+- Table binding
+- Menu browsing by category, with search
+- Dish options: spec, spice level, orderer ("super spicy" asks for confirmation)
+- Shared cart for group ordering
+- Cooking and serving progress
+- Service calls: broth, drinks, tableware, bill
+- Demo console: simulate sold-out dishes, service replies, order stages
+- Simulated checkout and payment
+- Chinese / English
+- Elderly mode (larger text)
+- Light, dark, and system themes
+- Six currencies (CNY, USD, EUR, JPY, HKD, TWD), converted from CNY at fixed rates
 
-- React 18
-- TypeScript
-- Vite
-- Tailwind CSS
-- Radix UI
-- i18next
-- Playwright
+Theme, currency, and elderly mode are saved in `localStorage`.
 
-## 环境要求
+## Tech stack
 
-- Node.js 18 或更高版本
-- npm 9 或更高版本
+React 18, TypeScript, Vite, Tailwind CSS, Radix UI, i18next, Playwright, Express (demo server).
 
-## 本地开发
+## Requirements
 
-安装依赖：
+- Node.js 18+ (CI uses 20)
+- npm 9+
+
+## Getting started
 
 ```bash
 npm install
-```
-
-启动开发服务：
-
-```bash
 npm run dev
 ```
 
-服务默认运行在 `http://localhost:5173`。如果该端口已被占用，Vite 会自动选择其他可用端口。
+Opens at `http://localhost:5173` (Vite picks another port if it's taken).
 
-## 常用命令
+## Commands
 
 ```bash
-# 启动开发服务
-npm run dev
-
-# 执行代码检查
-npm run lint
-
-# 构建生产版本
-npm run build
+npm run dev          # dev server
+npm run lint         # lint
+npm run build        # type-check and build to dist/
+npx playwright test  # e2e tests (starts the dev server)
 ```
 
-生产构建产物会生成在 `dist/` 目录。
+Playwright uses Chromium at `/opt/chromium.org/chromium/chrome`; override with `PLAYWRIGHT_CHROMIUM_PATH`.
 
-## 项目结构
+## Demo server
 
-```text
-.
-├── e2e/                    # Playwright 端到端测试
-├── server/                 # 演示服务端
-├── src/
-│   ├── assets/             # 图片资源
-│   ├── components/         # 页面及通用组件
-│   ├── data/               # 菜单等演示数据
-│   ├── hooks/              # React Hooks
-│   ├── state/              # 订单状态管理
-│   ├── App.tsx             # 应用入口组件
-│   ├── i18n.ts             # 中英文文案
-│   └── index.css           # 全局样式
-├── index.html
-├── tailwind.config.js
-└── vite.config.ts
+`server/` is a minimal Express app with `GET /ping` on port 3001.
+
+```bash
+cd server && npm install && npm run dev
 ```
 
-## 预览模式
+## Preview mode
 
-访问以下地址可以直接进入已绑定餐桌并带有购物车数据的菜单预览：
+Skip to the menu with a bound table and one cart item:
 
 ```text
 http://localhost:5173/?preview=menu
 ```
 
-实际端口以 Vite 启动日志为准。
+## Deployment
+
+Pushes to `main` build and deploy `dist/` to GitHub Pages via `.github/workflows/deploy-pages.yml`. `base: './'` lets the build run from any subpath.
+
+## Project structure
+
+```text
+.
+├── .github/workflows/  # GitHub Pages deploy
+├── docs/specs/         # Requirement notes
+├── e2e/                # Playwright tests
+├── openspec/           # OpenSpec proposals and specs
+├── server/             # Express demo server
+├── src/
+│   ├── assets/         # Images
+│   ├── components/     # Views and UI components
+│   ├── data/           # Menu data
+│   ├── hooks/          # Theme, currency, elderly mode
+│   ├── lib/            # Utilities, currency formatting
+│   ├── state/          # Order state
+│   ├── App.tsx         # Root component
+│   ├── i18n.ts         # zh / en strings
+│   └── index.css       # Global styles
+├── index.html
+├── playwright.config.ts
+├── tailwind.config.js
+└── vite.config.ts
+```
