@@ -99,6 +99,22 @@ http://localhost:5173/?preview=menu
 
 推送到 `main` 分支会触发 `.github/workflows/deploy-pages.yml`，自动构建并将 `dist/` 部署到 GitHub Pages。Vite 配置了 `base: './'`，构建产物可以部署在任意子路径下。
 
+## 容器化部署（Docker）
+
+`Dockerfile` 先用 Node 20 构建站点，再用 nginx 在 80 端口托管 `dist/`。`nginx.conf` 会把未知路径回退到 `index.html`，并对 `/assets/` 下带哈希的文件缓存一年。
+
+```bash
+# 构建镜像
+docker build -t feidian-hotpot .
+
+# 后台运行，映射到本机 8080 端口
+docker run -d --name feidian-hotpot -p 8080:80 feidian-hotpot
+```
+
+启动后访问 `http://localhost:8080`。停止并删除容器：`docker rm -f feidian-hotpot`。
+
+镜像只包含前端页面，不包含 `server/` 下的演示服务端。
+
 ## 项目结构
 
 ```text

@@ -72,6 +72,19 @@ http://localhost:5173/?preview=menu
 
 `main` へのプッシュで `.github/workflows/deploy-pages.yml` が `dist/` をビルドし、GitHub Pages にデプロイします。`base: './'` のため任意のサブパスで動作します。
 
+## Docker でのデプロイ
+
+`Dockerfile` は Node 20 でサイトをビルドし、nginx で `dist/` をポート 80 から配信します。`nginx.conf` は未知のパスを `index.html` にフォールバックし、`/assets/` 配下のハッシュ付きファイルを 1 年間キャッシュします。
+
+```bash
+docker build -t feidian-hotpot .
+docker run -d --name feidian-hotpot -p 8080:80 feidian-hotpot
+```
+
+起動後 `http://localhost:8080` を開きます。停止と削除は `docker rm -f feidian-hotpot` です。
+
+イメージにはフロントエンドのみが含まれ、`server/` のデモサーバーは含まれません。
+
 ## プロジェクト構成
 
 ```text
