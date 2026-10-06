@@ -1,4 +1,4 @@
-[English](./README.md) | [简体中文](./README.zh-CN.md) | **日本語**
+[English](./README.md) | [简体中文](./README.zh-CN.md) | **日本語** | [Español](./README.es.md)
 
 # 沸点火鍋 注文デモ
 
