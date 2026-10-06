@@ -4,11 +4,11 @@
 
 Working guide for AI coding agents. Human readers should start with [README.md](./README.md).
 
-## Project overview
+## Project Overview
 
 Feidian Hotpot Ordering Demo (`hdl-order-demo`): a frontend-only mobile ordering prototype covering table binding, group ordering, cooking progress, service calls and simulated checkout. **There is no real backend, payment or account system**; all data is local mock data.
 
-## Tech stack
+## Tech Stack
 
 Versions are whatever `package.json` / `server/package.json` declare.
 
@@ -29,7 +29,7 @@ Versions are whatever `package.json` / `server/package.json` declare.
 
 Before adding a dependency, check that nothing in the current stack already does the job. Don't introduce a second UI library, state library or CSS approach.
 
-## Environment and commands
+## Environment and Commands
 
 Use **npm** (CI runs `npm ci`; `package-lock.json` is the source of truth). `pnpm-lock.yaml` / `pnpm-workspace.yaml` are not used by CI, so never update only the pnpm lockfile when changing dependencies.
 
@@ -46,7 +46,7 @@ npx playwright test  # E2E, starts the dev server automatically
 - To debug the menu page, open `http://localhost:5173/?preview=menu` (table A08 bound, one item in the cart).
 - `server/` has its own `package.json`: `cd server && npm install && npm run dev`; type-check with `npm run typecheck`.
 
-## Required before committing
+## Required Before Committing
 
 1. `npm run lint` (zero warnings)
 2. `npm run build` (the only step CI runs; if it fails, the deploy fails)
@@ -54,7 +54,7 @@ npx playwright test  # E2E, starts the dev server automatically
 
 If you changed `server/`, also run `cd server && npm run typecheck`.
 
-## Directory layout
+## Directory Layout
 
 ```text
 src/
@@ -74,7 +74,7 @@ openspec/                # OpenSpec change proposals (spec-driven)
 docs/specs/              # requirement clarification notes
 ```
 
-## Coding conventions
+## Coding Conventions
 
 ### General
 
@@ -96,25 +96,25 @@ docs/specs/              # requirement clarification notes
 - When adding a key, **add it to both `zh` and `en`** with the same structure. Both the default language and the fallback are `zh`.
 - Dish names, descriptions and options in `data/menu.ts` are i18n keys, translated with `t()` at render time.
 
-### Prices and currency
+### Prices and Currency
 
 - All prices in data and state are **CNY base prices**; convert only for display with `money(value, currency)`.
 - Totals are summed in CNY first and converted once; don't convert each item and then add.
 - Rates are fixed values in `lib/utils.ts`; don't wire up live rates. JPY / TWD show whole numbers, the rest two decimals.
 - Adding a currency means updating the `Currency` type, `CURRENCIES`, `rates`, `currencySymbol`, `currencyFormatter`, and the i18n `common.currency.*` keys.
 
-### Styling and themes
+### Styling and Themes
 
 - Use Tailwind utility classes and merge class names with `cn()`. Prefer the brand colors from `tailwind.config.js` (`rice`, `chili`, `amber`, `charcoal`).
 - Dark mode is `darkMode: 'class'` (`<html class="dark">`). Any new or changed UI needs `dark:` variants too, as every existing component has.
 - Elderly mode enlarges text via a root `.elderly` class; necessary overrides go in `index.css`.
 
-### Local storage
+### Local Storage
 
 - Wrap every `localStorage` read and write in `try/catch` and fall back to in-memory state without throwing or blocking (see `useTheme.ts`).
 - Existing keys: `theme`, `currency`, `elderly-mode`, `i18nextLng`. Renaming one drops existing users' preferences and affects E2E (`playwright.config.ts` presets `theme=light`).
 
-## E2E test conventions
+## E2E Test Conventions
 
 - Files go in `e2e/`, named `<feature>.spec.ts`; test names carry an ID prefix such as `CUR-001: ...` or `DARK-003: ...`.
 - Prefer `getByRole` with a name regex that matches both languages: `/切换主题|Toggle theme/`.
@@ -122,7 +122,7 @@ docs/specs/              # requirement clarification notes
 - The config is serial (`workers: 1`) with no retries; don't add `retries` or `test.skip` to get green.
 - The test baseline is the light theme; switch themes explicitly inside a test when needed.
 
-## Specs and requirements
+## Specs and Requirements
 
 - For larger features, first write `proposal.md`, `design.md`, `tasks.md` and `specs/` under `openspec/changes/<change-name>/`, following `cart-recommendations`. Tick `[x]` in `tasks.md` as each task is done, and give every task a way to verify it.
 - When a requirement is ambiguous, check `docs/specs/` first; if it's still unclear, ask a human instead of inventing business rules.
