@@ -6,10 +6,26 @@
 
 沸点火锅点单概念 Demo（`hdl-order-demo`）：纯前端的移动端点单原型，覆盖绑桌、多人点餐、出餐进度、呼叫服务、模拟结账。**没有真实后端、支付或账号体系**，所有数据都是本地 mock。
 
-- 前端：React 18 + TypeScript 5.6 + Vite 6 + Tailwind CSS 3 + Radix UI + i18next
-- 测试：Playwright（仅 E2E，没有单元测试框架）
-- `server/`：独立的最小 Express 服务（`GET /ping`，端口 3001），前端目前不调用它
-- 部署：push 到 `main` 后由 `.github/workflows/deploy-pages.yml` 构建并发布到 GitHub Pages
+## 技术栈
+
+版本以 `package.json` / `server/package.json` 中的声明为准。
+
+| 领域 | 选型 | 说明 |
+| --- | --- | --- |
+| 语言 | TypeScript ~5.6 | `tsconfig.app.json` 开启严格模式；`npm run build` 先跑 `tsc -b` |
+| UI 框架 | React 18.3 | 函数组件 + hooks；全局状态用 `useReducer`（`src/state/orderReducer.ts`），没有 Redux 等状态库 |
+| 构建 | Vite 6 + `@vitejs/plugin-react` | `@` 别名指向 `src/`；`base: './'` 以支持 Pages 子路径 |
+| 样式 | Tailwind CSS 3 + PostCSS + Autoprefixer | `darkMode: 'class'`；品牌色在 `tailwind.config.js` 扩展 |
+| 组件基础 | Radix UI Dialog（`@radix-ui/react-tabs` 已安装但目前未使用）、shadcn 风格封装 | 基础组件在 `src/components/ui/`，变体用 `class-variance-authority` |
+| 类名工具 | `clsx` + `tailwind-merge` | 统一通过 `cn()`（`src/lib/utils.ts`） |
+| 图标 | `lucide-react` | 不要再引入其他图标库 |
+| 国际化 | i18next + react-i18next | 仅 `zh` / `en`，文案集中在 `src/i18n.ts` |
+| 代码检查 | ESLint 9（flat config）+ typescript-eslint + react-hooks + react-refresh | `--max-warnings 0` |
+| 测试 | Playwright 1.6x | 只有 E2E，没有单元测试框架 |
+| 演示服务端 | Express 4 + `tsx`（`server/`） | 独立包，`GET /ping`，端口 3001，前端目前不调用 |
+| CI / 部署 | GitHub Actions → GitHub Pages | `.github/workflows/deploy-pages.yml`，Node 20，push 到 `main` 触发 |
+
+引入新依赖前先确认现有栈里没有能完成同样事情的库；不要引入第二套 UI 库、状态库或 CSS 方案。
 
 ## 环境与命令
 
