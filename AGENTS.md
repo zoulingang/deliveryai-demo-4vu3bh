@@ -1,140 +1,142 @@
+**English** | [简体中文](./AGENTS.zh-CN.md)
+
 # AGENTS.md
 
-面向 AI 编码 Agent 的作业指导书。人类读者请先看 [README.md](./README.md)。
+Working guide for AI coding agents. Human readers should start with [README.md](./README.md).
 
-## 项目概览
+## Project overview
 
-沸点火锅点单概念 Demo（`hdl-order-demo`）：纯前端的移动端点单原型，覆盖绑桌、多人点餐、出餐进度、呼叫服务、模拟结账。**没有真实后端、支付或账号体系**，所有数据都是本地 mock。
+Feidian Hotpot Ordering Demo (`hdl-order-demo`): a frontend-only mobile ordering prototype covering table binding, group ordering, cooking progress, service calls and simulated checkout. **There is no real backend, payment or account system**; all data is local mock data.
 
-## 技术栈
+## Tech stack
 
-版本以 `package.json` / `server/package.json` 中的声明为准。
+Versions are whatever `package.json` / `server/package.json` declare.
 
-| 领域 | 选型 | 说明 |
+| Area | Choice | Notes |
 | --- | --- | --- |
-| 语言 | TypeScript ~5.6 | `tsconfig.app.json` 开启严格模式；`npm run build` 先跑 `tsc -b` |
-| UI 框架 | React 18.3 | 函数组件 + hooks；全局状态用 `useReducer`（`src/state/orderReducer.ts`），没有 Redux 等状态库 |
-| 构建 | Vite 6 + `@vitejs/plugin-react` | `@` 别名指向 `src/`；`base: './'` 以支持 Pages 子路径 |
-| 样式 | Tailwind CSS 3 + PostCSS + Autoprefixer | `darkMode: 'class'`；品牌色在 `tailwind.config.js` 扩展 |
-| 组件基础 | Radix UI Dialog（`@radix-ui/react-tabs` 已安装但目前未使用）、shadcn 风格封装 | 基础组件在 `src/components/ui/`，变体用 `class-variance-authority` |
-| 类名工具 | `clsx` + `tailwind-merge` | 统一通过 `cn()`（`src/lib/utils.ts`） |
-| 图标 | `lucide-react` | 不要再引入其他图标库 |
-| 国际化 | i18next + react-i18next | 仅 `zh` / `en`，文案集中在 `src/i18n.ts` |
-| 代码检查 | ESLint 9（flat config）+ typescript-eslint + react-hooks + react-refresh | `--max-warnings 0` |
-| 测试 | Playwright 1.6x | 只有 E2E，没有单元测试框架 |
-| 演示服务端 | Express 4 + `tsx`（`server/`） | 独立包，`GET /ping`，端口 3001，前端目前不调用 |
-| CI / 部署 | GitHub Actions → GitHub Pages | `.github/workflows/deploy-pages.yml`，Node 20，push 到 `main` 触发 |
+| Language | TypeScript ~5.6 | Strict mode in `tsconfig.app.json`; `npm run build` runs `tsc -b` first |
+| UI framework | React 18.3 | Function components + hooks; global state via `useReducer` (`src/state/orderReducer.ts`), no Redux or other state library |
+| Build | Vite 6 + `@vitejs/plugin-react` | `@` alias points to `src/`; `base: './'` supports the Pages subpath |
+| Styling | Tailwind CSS 3 + PostCSS + Autoprefixer | `darkMode: 'class'`; brand colors extended in `tailwind.config.js` |
+| Component primitives | Radix UI Dialog (`@radix-ui/react-tabs` is installed but currently unused), shadcn-style wrappers | Base components live in `src/components/ui/`; variants use `class-variance-authority` |
+| Class names | `clsx` + `tailwind-merge` | Always through `cn()` (`src/lib/utils.ts`) |
+| Icons | `lucide-react` | Don't add another icon library |
+| i18n | i18next + react-i18next | `zh` / `en` only; all strings in `src/i18n.ts` |
+| Linting | ESLint 9 (flat config) + typescript-eslint + react-hooks + react-refresh | `--max-warnings 0` |
+| Testing | Playwright 1.6x | E2E only; no unit test framework |
+| Demo server | Express 4 + `tsx` (`server/`) | Separate package, `GET /ping` on port 3001; the frontend doesn't call it yet |
+| CI / deploy | GitHub Actions → GitHub Pages | `.github/workflows/deploy-pages.yml`, Node 20, triggered by pushes to `main` |
 
-引入新依赖前先确认现有栈里没有能完成同样事情的库；不要引入第二套 UI 库、状态库或 CSS 方案。
+Before adding a dependency, check that nothing in the current stack already does the job. Don't introduce a second UI library, state library or CSS approach.
 
-## 环境与命令
+## Environment and commands
 
-包管理器用 **npm**（CI 跑 `npm ci`，以 `package-lock.json` 为准）。仓库里的 `pnpm-lock.yaml` / `pnpm-workspace.yaml` 不参与 CI，改依赖时不要只更新 pnpm 锁文件。
+Use **npm** (CI runs `npm ci`; `package-lock.json` is the source of truth). `pnpm-lock.yaml` / `pnpm-workspace.yaml` are not used by CI, so never update only the pnpm lockfile when changing dependencies.
 
 ```bash
-npm install          # 安装依赖（Node 18+，CI 用 20）
-npm run dev          # 开发服务器，http://localhost:5173
-npm run lint         # ESLint，--max-warnings 0，任何 warning 都算失败
-npm run build        # tsc -b 类型检查 + vite build 到 dist/
-npx playwright test  # E2E，会自动拉起 dev server
+npm install          # install dependencies (Node 18+, CI uses 20)
+npm run dev          # dev server at http://localhost:5173
+npm run lint         # ESLint, --max-warnings 0: any warning fails
+npm run build        # tsc -b type-check + vite build to dist/
+npx playwright test  # E2E, starts the dev server automatically
 ```
 
-- Playwright 默认使用 `/opt/chromium.org/chromium/chrome`，路径不同时设置 `PLAYWRIGHT_CHROMIUM_PATH`。**不要**运行 `playwright install`。
-- 跑单个 spec：`npx playwright test e2e/multi-currency.spec.ts`。
-- 调试菜单页可直接访问 `http://localhost:5173/?preview=menu`（已绑 A08 桌、购物车有一件商品）。
-- `server/` 有自己的 `package.json`：`cd server && npm install && npm run dev`，类型检查用 `npm run typecheck`。
+- Playwright uses `/opt/chromium.org/chromium/chrome` by default; set `PLAYWRIGHT_CHROMIUM_PATH` if yours is elsewhere. **Don't** run `playwright install`.
+- Run a single spec: `npx playwright test e2e/multi-currency.spec.ts`.
+- To debug the menu page, open `http://localhost:5173/?preview=menu` (table A08 bound, one item in the cart).
+- `server/` has its own `package.json`: `cd server && npm install && npm run dev`; type-check with `npm run typecheck`.
 
-## 提交前必须通过
+## Required before committing
 
-1. `npm run lint`（零 warning）
-2. `npm run build`（CI 只跑这一步，失败即部署失败）
-3. 改动影响 UI 或交互时，跑相关的 `npx playwright test e2e/<spec>`；新增功能要补 E2E 用例
+1. `npm run lint` (zero warnings)
+2. `npm run build` (the only step CI runs; if it fails, the deploy fails)
+3. When a change affects UI or interaction, run the relevant `npx playwright test e2e/<spec>`; new features need new E2E cases
 
-改了 `server/` 时额外跑 `cd server && npm run typecheck`。
+If you changed `server/`, also run `cd server && npm run typecheck`.
 
-## 目录与职责
+## Directory layout
 
 ```text
 src/
-├── App.tsx              # 根组件：视图切换、弹层、顶栏/底栏；?preview=menu 预览状态
-├── main.tsx             # 入口，挂载 CurrencyProvider
-├── types.ts             # 全部领域类型与 AppAction 联合类型
-├── state/orderReducer.ts# 唯一的全局状态 reducer（useReducer）
-├── data/menu.ts         # 菜品、分类、桌台 mock 数据
-├── i18n.ts              # zh / en 全部文案 + i18next 初始化
-├── hooks/               # 主题、货币、长辈模式
-├── lib/utils.ts         # cn()、货币类型、汇率、money() 格式化
-├── components/          # 各视图（*View.tsx）与弹层
-│   └── ui/              # shadcn 风格基础组件（button、dialog）
-└── index.css            # 全局样式、长辈模式覆盖
-e2e/                     # Playwright 用例
-openspec/                # OpenSpec 变更提案（spec-driven）
-docs/specs/              # 需求澄清文档
+├── App.tsx              # root component: view switching, sheets, top/bottom bars; ?preview=menu state
+├── main.tsx             # entry point, mounts CurrencyProvider
+├── types.ts             # all domain types and the AppAction union
+├── state/orderReducer.ts# the single global state reducer (useReducer)
+├── data/menu.ts         # mock dishes, categories, tables
+├── i18n.ts              # all zh / en strings + i18next setup
+├── hooks/               # theme, currency, elderly mode
+├── lib/utils.ts         # cn(), currency type, rates, money() formatting
+├── components/          # views (*View.tsx) and sheets
+│   └── ui/              # shadcn-style primitives (button, dialog)
+└── index.css            # global styles, elderly-mode overrides
+e2e/                     # Playwright tests
+openspec/                # OpenSpec change proposals (spec-driven)
+docs/specs/              # requirement clarification notes
 ```
 
-## 编码约定
+## Coding conventions
 
-### 通用
+### General
 
-- 导入 `src/` 下的模块统一用 `@/` 别名（如 `@/lib/utils`），不要写相对路径穿越目录。
-- 类型导入用 `import type`。
-- 代码风格沿用现有文件：2 空格缩进、单引号、无分号。仓库没有 Prettier，靠手动保持一致。
-- 注释用中文，写"为什么"，与周边文件密度一致。
-- `react-refresh/only-export-components` 规则会报 warning，而 lint 不容忍 warning：一个 `.tsx` 文件只导出组件。需要共享的 context、常量、hook 放到单独的 `.ts` 文件（参考 `hooks/currency-context.ts` + `hooks/use-currency.ts` + `hooks/useCurrency.tsx` 的拆分）。
+- Import modules under `src/` with the `@/` alias (e.g. `@/lib/utils`), not relative paths that climb directories.
+- Use `import type` for type-only imports.
+- Match the existing style: 2-space indent, single quotes, no semicolons. There is no Prettier, so keep it consistent by hand.
+- Code comments are written in Chinese and explain why; match the density of the surrounding file.
+- `react-refresh/only-export-components` emits warnings and lint tolerates none, so a `.tsx` file exports only components. Put shared contexts, constants and hooks in separate `.ts` files (see the split across `hooks/currency-context.ts`, `hooks/use-currency.ts` and `hooks/useCurrency.tsx`).
 
-### 状态
+### State
 
-- 全局业务状态只经过 `orderReducer`。新增行为时：先在 `types.ts` 的 `AppAction` 加分支，再在 reducer 里实现，保持不可变更新。
-- reducer 里给用户的提示写入 `lastMessage`，文案用 `i18next.t(...)`，不要硬编码。
-- 主题、货币、长辈模式这类偏好是独立 hook，不进 reducer。
+- Global app state goes only through `orderReducer`. To add behavior, add a case to `AppAction` in `types.ts` first, then implement it in the reducer with immutable updates.
+- User-facing notices from the reducer go in `lastMessage`, using `i18next.t(...)`, never hard-coded text.
+- Preferences such as theme, currency and elderly mode are standalone hooks and stay out of the reducer.
 
-### 国际化
+### Internationalization
 
-- 所有用户可见文本（包括 `aria-label`、`document.title`）都走 i18n，不允许硬编码中文或英文。
-- 新增 key 时 **`zh` 和 `en` 两份必须同时加**，结构保持一致。默认语言和 fallback 都是 `zh`。
-- `data/menu.ts` 里的菜名、描述、选项存的是 i18n key，渲染时再 `t()`。
+- All user-visible text (including `aria-label` and `document.title`) goes through i18n; no hard-coded Chinese or English.
+- When adding a key, **add it to both `zh` and `en`** with the same structure. Both the default language and the fallback are `zh`.
+- Dish names, descriptions and options in `data/menu.ts` are i18n keys, translated with `t()` at render time.
 
-### 金额与货币
+### Prices and currency
 
-- 所有价格在数据和状态里都是 **CNY 底价**，只在展示时调用 `money(value, currency)` 换算。
-- 合计金额先按 CNY 累加，再整体换算，不要逐项换算后相加。
-- 汇率是 `lib/utils.ts` 里的固定值，不要接入实时汇率。JPY / TWD 显示整数，其他两位小数。
-- 新增货币需同时改 `Currency` 类型、`CURRENCIES`、`rates`、`currencySymbol`、`currencyFormatter`，以及 i18n 的 `common.currency.*`。
+- All prices in data and state are **CNY base prices**; convert only for display with `money(value, currency)`.
+- Totals are summed in CNY first and converted once; don't convert each item and then add.
+- Rates are fixed values in `lib/utils.ts`; don't wire up live rates. JPY / TWD show whole numbers, the rest two decimals.
+- Adding a currency means updating the `Currency` type, `CURRENCIES`, `rates`, `currencySymbol`, `currencyFormatter`, and the i18n `common.currency.*` keys.
 
-### 样式与主题
+### Styling and themes
 
-- 用 Tailwind 工具类，合并类名用 `cn()`。优先使用 `tailwind.config.js` 里的品牌色（`rice`、`chili`、`amber`、`charcoal`）。
-- 深色模式是 `darkMode: 'class'`（`<html class="dark">`）。新增或修改的 UI 都要同时写 `dark:` 变体，现有组件都是这样做的。
-- 长辈模式通过根节点 `.elderly` 类放大字号，必要的覆盖写在 `index.css`。
+- Use Tailwind utility classes and merge class names with `cn()`. Prefer the brand colors from `tailwind.config.js` (`rice`, `chili`, `amber`, `charcoal`).
+- Dark mode is `darkMode: 'class'` (`<html class="dark">`). Any new or changed UI needs `dark:` variants too, as every existing component has.
+- Elderly mode enlarges text via a root `.elderly` class; necessary overrides go in `index.css`.
 
-### 本地存储
+### Local storage
 
-- 读写 `localStorage` 一律包在 `try/catch` 里，失败时降级为内存态，不报错不阻塞（见 `useTheme.ts`）。
-- 现有 key：`theme`、`currency`、`elderly-mode`、`i18nextLng`。改名会让老用户的偏好失效，同时会影响 E2E（`playwright.config.ts` 预置了 `theme=light`）。
+- Wrap every `localStorage` read and write in `try/catch` and fall back to in-memory state without throwing or blocking (see `useTheme.ts`).
+- Existing keys: `theme`, `currency`, `elderly-mode`, `i18nextLng`. Renaming one drops existing users' preferences and affects E2E (`playwright.config.ts` presets `theme=light`).
 
-## E2E 测试约定
+## E2E test conventions
 
-- 文件放在 `e2e/`，命名 `<feature>.spec.ts`；用例名带编号前缀，如 `CUR-001: ...`、`DARK-003: ...`。
-- 定位优先用 `getByRole` + 名称正则，并同时匹配中英文：`/切换主题|Toggle theme/`。
-- 进入菜单页可用 `page.goto('/?preview=menu')`，或按真实流程点击 A08 桌再"进入点餐"。
-- 配置是串行（`workers: 1`）、不重试；不要靠加 `retries` 或 `test.skip` 让测试变绿。
-- 测试基线是浅色主题；需要别的主题时在用例里显式切换。
+- Files go in `e2e/`, named `<feature>.spec.ts`; test names carry an ID prefix such as `CUR-001: ...` or `DARK-003: ...`.
+- Prefer `getByRole` with a name regex that matches both languages: `/切换主题|Toggle theme/`.
+- Reach the menu with `page.goto('/?preview=menu')`, or by the real flow: tap table A08, then "进入点餐" (Enter).
+- The config is serial (`workers: 1`) with no retries; don't add `retries` or `test.skip` to get green.
+- The test baseline is the light theme; switch themes explicitly inside a test when needed.
 
-## 规格与需求流程
+## Specs and requirements
 
-- 较大的功能先在 `openspec/changes/<change-name>/` 写 `proposal.md`、`design.md`、`tasks.md` 和 `specs/`，参考 `cart-recommendations`。完成一项任务就在 `tasks.md` 里勾选 `[x]`，每项任务写明验证方式。
-- 需求有歧义时先查 `docs/specs/`，仍不清楚就向人确认，不要自行发明业务规则。
+- For larger features, first write `proposal.md`, `design.md`, `tasks.md` and `specs/` under `openspec/changes/<change-name>/`, following `cart-recommendations`. Tick `[x]` in `tasks.md` as each task is done, and give every task a way to verify it.
+- When a requirement is ambiguous, check `docs/specs/` first; if it's still unclear, ask a human instead of inventing business rules.
 
-## 提交与 PR
+## Commits and PRs
 
-- 提交信息用 Conventional Commits：`feat:`、`fix:`、`docs:`、`test:` 等，描述可以中文或英文。
-- 一个 PR 只做一件事；不要顺手重构无关代码。
-- 不要提交 `node_modules/`、`dist/`、`e2e-report/`、`test-results/`、`.vefaas/`。
-- 改了 README 时，`README.md`、`README.zh-CN.md`、`README.ja.md` 三个语言版本要同步。
+- Commit messages follow Conventional Commits: `feat:`, `fix:`, `docs:`, `test:`, etc.; the description can be Chinese or English.
+- One PR does one thing; don't refactor unrelated code along the way.
+- Don't commit `node_modules/`, `dist/`, `e2e-report/`, `test-results/` or `.vefaas/`.
+- When changing a README, keep `README.md`, `README.zh-CN.md` and `README.ja.md` in sync; when changing this file, keep `AGENTS.md` (English) and `AGENTS.zh-CN.md` in sync.
 
-## 不要做的事
+## Don't
 
-- 不要引入真实支付、账号、实时汇率或外部 API 调用；这是概念 Demo，页面上的"概念演示 / 非官方"标识不能移除。
-- 不要改 `vite.config.ts` 的 `base: './'`，GitHub Pages 子路径部署依赖它。
-- 不要绕过 lint（加 `eslint-disable`）或类型检查（`any`、`@ts-ignore`）来通过 CI。
-- 不要手改 `package-lock.json`，依赖变更用 `npm install <pkg>` 生成。
+- Don't add real payments, accounts, live exchange rates or external API calls. This is a concept demo, and the "概念演示 / 非官方" (concept demo / unofficial) label on the page must stay.
+- Don't change `base: './'` in `vite.config.ts`; GitHub Pages subpath deployment depends on it.
+- Don't bypass lint (`eslint-disable`) or type checking (`any`, `@ts-ignore`) to pass CI.
+- Don't hand-edit `package-lock.json`; generate dependency changes with `npm install <pkg>`.
