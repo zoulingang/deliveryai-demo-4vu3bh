@@ -1,4 +1,4 @@
-[English](./README.md) | **简体中文** | [日本語](./README.ja.md) | [Español](./README.es.md)
+[English](./README.md) | **简体中文** | [日本語](./README.ja.md) | [Español](./README.md#espanol)
 
 # 沸点火锅点单演示
 
