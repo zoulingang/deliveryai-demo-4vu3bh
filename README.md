@@ -72,6 +72,19 @@ http://localhost:5173/?preview=menu
 
 Pushes to `main` build and deploy `dist/` to GitHub Pages via `.github/workflows/deploy-pages.yml`. `base: './'` lets the build run from any subpath.
 
+## Docker deployment
+
+The `Dockerfile` builds the site with Node 20, then serves `dist/` from nginx on port 80. `nginx.conf` falls back to `index.html` for unknown paths and caches hashed files under `/assets/` for a year.
+
+```bash
+docker build -t feidian-hotpot .
+docker run -d --name feidian-hotpot -p 8080:80 feidian-hotpot
+```
+
+Then open `http://localhost:8080`. Stop and remove it with `docker rm -f feidian-hotpot`.
+
+The image contains only the frontend; the `server/` demo app is not included.
+
 ## Project structure
 
 ```text
@@ -91,7 +104,9 @@ Pushes to `main` build and deploy `dist/` to GitHub Pages via `.github/workflows
 │   ├── App.tsx         # Root component
 │   ├── i18n.ts         # zh / en strings
 │   └── index.css       # Global styles
+├── Dockerfile          # Container image build
 ├── index.html
+├── nginx.conf          # nginx config for the image
 ├── playwright.config.ts
 ├── tailwind.config.js
 └── vite.config.ts
@@ -173,6 +188,19 @@ http://localhost:5173/?preview=menu
 
 Cada push a `main` compila y despliega `dist/` en GitHub Pages mediante `.github/workflows/deploy-pages.yml`. Gracias a `base: './'`, el build funciona en cualquier subruta.
 
+### Despliegue con Docker
+
+El `Dockerfile` compila el sitio con Node 20 y sirve `dist/` con nginx en el puerto 80. `nginx.conf` redirige las rutas desconocidas a `index.html` y cachea durante un año los archivos con hash de `/assets/`.
+
+```bash
+docker build -t feidian-hotpot .
+docker run -d --name feidian-hotpot -p 8080:80 feidian-hotpot
+```
+
+Después abre `http://localhost:8080`. Para detenerlo y eliminarlo: `docker rm -f feidian-hotpot`.
+
+La imagen solo incluye el frontend; la app de demo de `server/` no se incluye.
+
 ### Estructura del proyecto
 
 ```text
@@ -192,7 +220,9 @@ Cada push a `main` compila y despliega `dist/` en GitHub Pages mediante `.github
 │   ├── App.tsx         # Componente raíz
 │   ├── i18n.ts         # Textos zh / en
 │   └── index.css       # Estilos globales
+├── Dockerfile          # Build de la imagen de contenedor
 ├── index.html
+├── nginx.conf          # Config de nginx para la imagen
 ├── playwright.config.ts
 ├── tailwind.config.js
 └── vite.config.ts
