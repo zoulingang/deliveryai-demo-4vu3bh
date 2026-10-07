@@ -1,0 +1,92 @@
+# 演示用：在 PR 上制造几种典型的 CI 信号，帮助理解 Loop 能订阅到什么。
+# 结果全部是 mock 的，不代表项目真实的检查结果。
+name: CI Demo (mock)
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+  statuses: write
+  checks: write
+  pull-requests: write
+
+jobs:
+  # 1) GitHub Actions 自身的 job 会自动变成 check run，这一个通过
+  lint:
+    name: lint (mock pass)
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "eslint . --max-warnings 0 → 0 problems (mock)"
+
+  # 2) 模拟单元测试；最初故意失败，演示修复后改为通过
+  unit-tests:
+    name: unit-tests (mock)
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "PASS src/state/orderReducer.test.ts (mock)"
+          echo "  ✓ ADD_ITEM › merges same dish into one cart line"
+          echo "Tests: 12 passed, 12 total"
+
+  # 3) 模拟外部 CI（Jenkins 等）通过 API 写回结果，以及评论这个补充渠道
+  external-ci:
+    name: mock external CI
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+      SHA: ${{ github.event.pull_request.head.sha }}
+      PR: ${{ github.event.pull_request.number }}
+    steps:
+      - name: Commit status - jenkins/build success
+        run: |
+          gh api "repos/$REPO/statuses/$SHA" \
+            -f state=success -f context="jenkins/build" \
+            -f description="Build #128 passed in 3m12s (mock)" \
+            -f target_url="https://jenkins.example.com/job/hdl-order-demo/128/"
+
+      - name: Commit status - jenkins/e2e success
+        run: |
+          gh api "repos/$REPO/statuses/$SHA" \
+            -f state=success -f context="jenkins/e2e" \
+            -f description="48 of 48 Playwright tests passed (mock)" \
+            -f target_url="https://jenkins.example.com/job/hdl-order-demo-e2e/57/"
+
+      - name: Check run - security scan with annotation
+        run: |
+          gh api "repos/$REPO/check-runs" --input - <<EOF
+          {
+            "name": "mock-security-scan",
+            "head_sha": "$SHA",
+            "status": "completed",
+            "conclusion": "neutral",
+            "details_url": "https://scanner.example.com/report/991",
+            "output": {
+              "title": "1 low-severity finding (mock)",
+              "summary": "Mock scanner found 1 issue. Neutral conclusion: does not block merge.",
+              "annotations": [
+                {
+                  "path": "src/App.tsx",
+                  "start_line": 1,
+                  "end_line": 1,
+                  "annotation_level": "warning",
+                  "message": "Mock finding: example annotation attached to a file line."
+                }
+              ]
+            }
+          }
+          EOF
+
+      - name: Bot comment - coverage report
+        run: |
+          gh api "repos/$REPO/issues/$PR/comments" -f body="$(cat <<'EOF'
+          **Coverage report (mock)**
+
+          | | Before | After |
+          |---|---|---|
+          | Lines | 79.4% | 78.2% (-1.2%) |
+
+          This is a comment, not a status: it does not block merging and carries no pass/fail field.
+          EOF
+          )"
