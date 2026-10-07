@@ -19,19 +19,15 @@ jobs:
     steps:
       - run: echo "eslint . --max-warnings 0 → 0 problems (mock)"
 
-  # 2) 另一个 job 故意失败，模拟单元测试挂掉；Loop 读到的就是这份日志
+  # 2) 模拟单元测试；最初故意失败，演示修复后改为通过
   unit-tests:
-    name: unit-tests (mock fail)
+    name: unit-tests (mock)
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "FAIL src/state/orderReducer.test.ts (mock)"
-          echo "  ● ADD_ITEM › merges same dish into one cart line"
-          echo "    expect(received).toBe(expected)"
-          echo "    Expected: 1"
-          echo "    Received: 2"
-          echo "      at src/state/orderReducer.ts:42"
-          exit 1
+          echo "PASS src/state/orderReducer.test.ts (mock)"
+          echo "  ✓ ADD_ITEM › merges same dish into one cart line"
+          echo "Tests: 12 passed, 12 total"
 
   # 3) 模拟外部 CI（Jenkins 等）通过 API 写回结果，以及评论这个补充渠道
   external-ci:
@@ -50,11 +46,11 @@ jobs:
             -f description="Build #128 passed in 3m12s (mock)" \
             -f target_url="https://jenkins.example.com/job/hdl-order-demo/128/"
 
-      - name: Commit status - jenkins/e2e failure
+      - name: Commit status - jenkins/e2e success
         run: |
           gh api "repos/$REPO/statuses/$SHA" \
-            -f state=failure -f context="jenkins/e2e" \
-            -f description="2 of 48 Playwright tests failed (mock)" \
+            -f state=success -f context="jenkins/e2e" \
+            -f description="48 of 48 Playwright tests passed (mock)" \
             -f target_url="https://jenkins.example.com/job/hdl-order-demo-e2e/57/"
 
       - name: Check run - security scan with annotation
