@@ -1,9 +1,10 @@
 import { useTranslation } from 'react-i18next'
-import { Check, Minus, Plus, ShoppingBasket, Trash2, Users } from 'lucide-react'
+import { Check, Lightbulb, Minus, Plus, ShoppingBasket, Trash2, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { getProduct, products } from '@/data/menu'
 import { money } from '@/lib/utils'
 import type { Currency } from '@/lib/utils'
-import type { CartItem } from '@/types'
+import type { CartItem, OrderItem, Product } from '@/types'
 
 interface CartPanelProps {
   items: CartItem[]
@@ -11,10 +12,52 @@ interface CartPanelProps {
   currency: Currency
   onQuantity: (uid: string, delta: number) => void
   onSubmit: () => void
+  orderItems: OrderItem[]
+  soldOut: string[]
+  diners: string[]
+  onAddRecommended: (item: CartItem) => void
 }
 
-export function CartPanel({ items, compact, currency, onQuantity, onSubmit }: CartPanelProps) {
+// Checked in order; each rule fires when the table (cart + submitted order) has nothing from its categories
+const recommendRules = [
+  { reason: 'broth', categories: ['menu.cat.broth'] },
+  { reason: 'protein', categories: ['menu.cat.meat', 'menu.cat.seafood'] },
+  { reason: 'veggie', categories: ['menu.cat.veggie'] },
+  { reason: 'staple', categories: ['menu.cat.staple'] },
+]
+// An iced drink is suggested first when the table has a heavy or super spicy dish
+const drinkId = 'p10'
+const maxRecommendations = 2
+
+function getRecommendations(tableItems: CartItem[], soldOut: string[], hotSpicyLabels: string[]) {
+  const tableCategories = new Set(tableItems.map((item) => getProduct(item.productId)?.category))
+  const tableIds = new Set(tableItems.map((item) => item.productId))
+  const picks: { product: Product; reason: string }[] = []
+  for (const rule of recommendRules) {
+    if (rule.categories.some((category) => tableCategories.has(category))) continue
+    const product = products.find((candidate) => rule.categories.includes(candidate.category) && candidate.id !== drinkId && !soldOut.includes(candidate.id))
+    if (product) picks.push({ product, reason: rule.reason })
+  }
+  const drink = getProduct(drinkId)
+  const isHot = tableItems.some((item) => hotSpicyLabels.some((label) => item.spec.includes(label)))
+  if (drink && isHot && !tableIds.has(drinkId) && !soldOut.includes(drinkId) && !picks.some((pick) => pick.product.id === drinkId)) {
+    picks.unshift({ product: drink, reason: 'drink' })
+  }
+  return picks.slice(0, maxRecommendations)
+}
+
+export function CartPanel({ items, compact, currency, onQuantity, onSubmit, orderItems, soldOut, diners, onAddRecommended }: CartPanelProps) {
   const { t } = useTranslation()
+  const recommendations = getRecommendations([...items, ...orderItems], soldOut, [t('menu.option.heavy'), t('menu.option.super_spicy')])
+  // Recommended dishes go in as a full portion, mild, with the first flavor, matching recommend.added_hint
+  const addRecommendation = (product: Product) => {
+    const portion = product.options?.portion?.includes('menu.option.full') ? 'menu.option.full' : product.options?.portion?.[0]
+    const flavor = product.options?.flavor?.[0]
+    const spicy = product.options?.spicy?.includes('menu.option.mild') ? 'menu.option.mild' : product.options?.spicy?.[0]
+    const portionFactor = portion === 'menu.option.half' ? 0.58 : 1
+    const spec = [portion, flavor, spicy].filter(Boolean).map((key) => t(key as string)).join(' · ') || t('menu.standard')
+    onAddRecommended({ uid: crypto.randomUUID(), productId: product.id, name: t(product.name), price: Math.round(product.price * portionFactor), quantity: 1, image: product.image, spec, orderedBy: diners[0] })
+  }
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const people = [...new Set(items.map((item) => item.orderedBy))]
 
@@ -53,6 +96,20 @@ export function CartPanel({ items, compact, currency, onQuantity, onSubmit }: Ca
           </div>
         ))}
       </div>
+      {recommendations.length > 0 && (
+        <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-100/40 p-4 dark:border-amber-400/20 dark:bg-amber-400/5" data-testid="cart-recommendations">
+          <p className="flex items-center gap-2 text-sm font-bold text-charcoal-900 dark:text-rice-50"><Lightbulb size={15} className="text-amber-500 dark:text-amber-400" />{t('recommend.title')}</p>
+          <div className="mt-3 space-y-3">
+            {recommendations.map(({ product, reason }) => (
+              <div key={product.id} className="flex items-center gap-3">
+                <img src={product.image} alt={t(product.name)} className="h-11 w-11 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-charcoal-900 dark:text-rice-50">{t(product.name)}</p><p className="truncate text-xs text-charcoal-500 dark:text-rice-200/60">{t(`recommend.reason.${reason}`)}</p></div>
+                <button onClick={() => addRecommendation(product)} className="flex shrink-0 items-center gap-1 rounded-lg bg-chili-500 px-3 py-1.5 text-xs font-bold text-white dark:bg-chili-400"><Plus size={13} />{t('recommend.add')}</button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="mt-5 rounded-2xl bg-rice-100 p-4 dark:bg-charcoal-800">
         <div className="flex justify-between text-sm text-charcoal-500 dark:text-rice-200/60"><span>{t('cart.subtotal')}</span><span>{money(subtotal, currency)}</span></div>
         <div className="mt-2 flex justify-between font-extrabold text-charcoal-900 dark:text-rice-50"><span>{t('cart.estimated')}</span><span className="text-xl text-chili-500 dark:text-chili-400">{money(subtotal, currency)}</span></div>
