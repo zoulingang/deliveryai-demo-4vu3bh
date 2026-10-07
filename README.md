@@ -104,7 +104,9 @@ The image contains only the frontend; the `server/` demo app is not included.
 │   ├── App.tsx         # Root component
 │   ├── i18n.ts         # zh / en strings
 │   └── index.css       # Global styles
+├── Dockerfile          # Container image build
 ├── index.html
+├── nginx.conf          # nginx config for the image
 ├── playwright.config.ts
 ├── tailwind.config.js
 └── vite.config.ts
@@ -218,7 +220,9 @@ La imagen solo incluye el frontend; la app de demo de `server/` no se incluye.
 │   ├── App.tsx         # Componente raíz
 │   ├── i18n.ts         # Textos zh / en
 │   └── index.css       # Estilos globales
+├── Dockerfile          # Build de la imagen de contenedor
 ├── index.html
+├── nginx.conf          # Config de nginx para la imagen
 ├── playwright.config.ts
 ├── tailwind.config.js
 └── vite.config.ts

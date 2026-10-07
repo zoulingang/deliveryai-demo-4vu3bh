@@ -134,7 +134,9 @@ docker run -d --name feidian-hotpot -p 8080:80 feidian-hotpot
 │   ├── App.tsx             # 应用入口组件
 │   ├── i18n.ts             # 中英文文案
 │   └── index.css           # 全局样式
+├── Dockerfile              # 容器镜像构建
 ├── index.html
+├── nginx.conf              # 镜像内的 nginx 配置
 ├── playwright.config.ts
 ├── tailwind.config.js
 └── vite.config.ts
