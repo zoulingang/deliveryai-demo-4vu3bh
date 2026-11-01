@@ -19,7 +19,7 @@ import { useTheme } from '@/hooks/useTheme'
 import { orderReducer, initialState } from '@/state/orderReducer'
 import { products } from '@/data/menu'
 import { money } from '@/lib/utils'
-import type { AppState, CartItem, ViewName } from '@/types'
+import type { AppState, ViewName } from '@/types'
 
 function createPreviewState(): AppState {
   const preview = new URLSearchParams(window.location.search).get('preview')
@@ -74,11 +74,6 @@ export default function App() {
     toggleElderly()
     dispatch({ type: 'SET_MESSAGE', message: elderly ? '已切换为常规模式' : '已切换为老人模式' })
   }
-  const addRecommended = (item: CartItem) => {
-    dispatch({ type: 'ADD_CART', item })
-    dispatch({ type: 'SET_MESSAGE', message: t('recommend.added_hint') })
-  }
-
   if (state.view === 'bind' || !state.table) {
     return <BindTable onBind={(table) => dispatch({ type: 'BIND_TABLE', table })} />
   }
@@ -114,7 +109,7 @@ export default function App() {
           </div>
           <aside className="hidden lg:block">
             <div className="sticky top-28">
-              <CartPanel items={state.cart} orderItems={state.orderItems} soldOut={state.soldOut} diners={state.diners} currency={currency} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} onAddRecommended={addRecommended} />
+              <CartPanel items={state.cart} currency={currency} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} />
               <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-100/70 p-4 text-sm text-charcoal-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-rice-200">
                 <p className="font-bold dark:text-amber-400">{t('common.collab_title')}</p>
                 <p className="mt-1 leading-6 text-charcoal-500 dark:text-rice-200/60">{t('common.collab_desc')}</p>
@@ -155,7 +150,7 @@ export default function App() {
 
       <Dialog open={cartOpen} onOpenChange={setCartOpen}>
         <DialogContent title={t('cart.dialog_title')}>
-          <div className="mt-5"><CartPanel compact items={state.cart} orderItems={state.orderItems} soldOut={state.soldOut} diners={state.diners} currency={currency} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} onAddRecommended={addRecommended} /></div>
+          <div className="mt-5"><CartPanel compact items={state.cart} currency={currency} onQuantity={(uid, delta) => dispatch({ type: 'CHANGE_QTY', uid, delta })} onSubmit={submitOrder} /></div>
         </DialogContent>
       </Dialog>
 

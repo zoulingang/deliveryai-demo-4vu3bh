@@ -38,6 +38,7 @@ npm install          # 安装依赖（Node 18+，CI 用 20）
 npm run dev          # 开发服务器，http://localhost:5173
 npm run lint         # ESLint，--max-warnings 0，任何 warning 都算失败
 npm run build        # tsc -b 类型检查 + vite build 到 dist/
+npm run verify       # 必需的 lint + build 统一入口，CI 也调用它
 npx playwright test  # E2E，会自动拉起 dev server
 ```
 
@@ -48,9 +49,8 @@ npx playwright test  # E2E，会自动拉起 dev server
 
 ## 提交前必须通过
 
-1. `npm run lint`（零 warning）
-2. `npm run build`（CI 只跑这一步，失败即部署失败）
-3. 改动影响 UI 或交互时，跑相关的 `npx playwright test e2e/<spec>`；新增功能要补 E2E 用例
+1. `npm run verify`（零 warning lint 加生产类型检查/构建；CI 使用同一入口）
+2. 改动影响 UI 或交互时，跑相关的 `npx playwright test e2e/<spec>`；新增功能要补 E2E 用例
 
 改了 `server/` 时额外跑 `cd server && npm run typecheck`。
 
