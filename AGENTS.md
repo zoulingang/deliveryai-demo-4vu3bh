@@ -38,6 +38,7 @@ npm install          # install dependencies (Node 18+, CI uses 20)
 npm run dev          # dev server at http://localhost:5173
 npm run lint         # ESLint, --max-warnings 0: any warning fails
 npm run build        # tsc -b type-check + vite build to dist/
+npm run verify       # required lint + build entry, also used by CI
 npx playwright test  # E2E, starts the dev server automatically
 ```
 
@@ -48,9 +49,8 @@ npx playwright test  # E2E, starts the dev server automatically
 
 ## Required Before Committing
 
-1. `npm run lint` (zero warnings)
-2. `npm run build` (the only step CI runs; if it fails, the deploy fails)
-3. When a change affects UI or interaction, run the relevant `npx playwright test e2e/<spec>`; new features need new E2E cases
+1. `npm run verify` (zero-warning lint plus the production type-check/build; CI uses the same entry)
+2. When a change affects UI or interaction, run the relevant `npx playwright test e2e/<spec>`; new features need new E2E cases
 
 If you changed `server/`, also run `cd server && npm run typecheck`.
 

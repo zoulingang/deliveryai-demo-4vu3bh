@@ -1,0 +1,153 @@
+schema_version: 1
+repository:
+  id: deliveryai-demo-4vu3bh
+  name: Feidian Hotpot Ordering Demo
+  owner: zoulingang
+  profile: app
+  owner_source: github.com/zoulingang/deliveryai-demo-4vu3bh
+
+sources:
+  requirements:
+    - docs/requirements/*.md
+  policies:
+    - docs/policies/*.md
+  adrs: []
+  deliveries: []
+  evidence: []
+  waivers: []
+  contracts: []
+
+modules:
+  - id: web-app
+    path: src
+    responsibility: 提供火锅点餐移动端演示，包括桌台绑定、菜单、购物车、出餐进度、服务呼叫与模拟结账
+    boundaries:
+      - 仅使用本地 mock 数据，不接入真实后端、支付、账户或实时汇率
+      - 全局订单状态由 src/state/orderReducer.ts 管理，主题、币种和老年模式由独立 hooks 管理
+      - 所有用户可见文本同时维护 zh 和 en，并统一定义在 src/i18n.ts
+    dependencies:
+      - React
+      - Vite
+      - Tailwind CSS
+      - i18next
+    owner: zoulingang
+    checks:
+      - lint
+      - build
+      - test
+
+  - id: end-to-end-tests
+    path: e2e
+    responsibility: 使用 Playwright 验证点餐演示的关键用户流程和界面交互
+    boundaries:
+      - 测试串行执行且不重试，不能通过增加 retries 或 test.skip 隐藏失败
+      - Chromium 由 PLAYWRIGHT_CHROMIUM_PATH 或仓库约定路径提供，不执行 playwright install
+    dependencies:
+      - web-app
+      - Playwright
+    owner: zoulingang
+    checks:
+      - test
+
+  - id: demo-server
+    path: server
+    responsibility: 提供独立的 Express 演示服务和 GET /ping 健康检查
+    boundaries:
+      - 当前前端不调用该服务
+      - 服务仅用于演示，不承载真实订单、支付或账户数据
+    dependencies:
+      - Express
+      - TypeScript
+    owner: zoulingang
+    checks:
+      - server-typecheck
+
+commands:
+  bootstrap:
+    argv:
+      - npm
+      - ci
+    required: false
+    source: package-lock.json and .github/workflows/deploy-pages.yml
+  build:
+    argv:
+      - npm
+      - run
+      - build
+    required: false
+    source: package.json:scripts.build
+  test:
+    argv:
+      - npx
+      - playwright
+      - test
+    required: false
+    source: AGENTS.md and playwright.config.ts
+    prerequisites:
+      - Chromium available through PLAYWRIGHT_CHROMIUM_PATH or /opt/chromium.org/chromium/chrome
+  lint:
+    argv:
+      - npm
+      - run
+      - lint
+    required: false
+    source: package.json:scripts.lint
+  verify:
+    argv:
+      - npm
+      - run
+      - verify
+    required: true
+    source: package.json:scripts.verify
+  security-check:
+    argv: []
+    required: false
+    source: unresolved
+  release-check:
+    argv: []
+    required: false
+    source: unresolved
+
+change_scopes:
+  - paths:
+      - src/**
+    checks:
+      - lint
+      - build
+      - test
+    risk: R2
+  - paths:
+      - e2e/**
+      - playwright.config.ts
+    checks:
+      - lint
+      - test
+    risk: R2
+  - paths:
+      - server/**
+    checks:
+      - server-typecheck
+    risk: R1
+
+external_systems:
+  evidence:
+    - type: ci
+      configuration: .github/workflows/deploy-pages.yml
+      artifact_resolution: unresolved
+  release:
+    - type: github-pages
+      configuration: .github/workflows/deploy-pages.yml
+      status_resolution: external
+
+workflow:
+  checks:
+    server-typecheck:
+      argv:
+        - npm
+        - --prefix
+        - server
+        - run
+        - typecheck
+      required: false
+      source: server/package.json:scripts.typecheck
+  contract_checks: []
